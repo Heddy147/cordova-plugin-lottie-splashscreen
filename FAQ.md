@@ -141,3 +141,64 @@ It seems that the `pod` gem (the [package manager for Swift and Objective-C](htt
 $ sudo gem install cocoapods
 $ cordova plugin add cordova-plugin-lottie-splashscreen
 ```
+
+### FAILURE: Build failed with an exception.
+
+```
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:mergeDebugResources'.
+> This project uses AndroidX dependencies, but the 'android.useAndroidX' property is not enabled. Set this property to true in the gradle.properties file and retry.
+```
+
+### Answer
+
+Use cordova-android >=9.0.0. Set `AndroidXEnabled` to `true` in your config.xml
+
+### E/AndroidRuntime: FATAL EXCEPTION: main
+
+```
+2020-06-29 11:20:54.578 10355-10355/de.dustplanet.lottie E/AndroidRuntime: FATAL EXCEPTION: main
+    Process: de.dustplanet.lottie, PID: 10355
+    java.lang.RuntimeException: Unable to start activity ComponentInfo{de.dustplanet.lottie/de.dustplanet.lottie.MainActivity}: java.lang.NullPointerException: Attempt to invoke virtual method 'void org.apache.cordova.CordovaPlugin.privateInitialize(java.lang.String, org.apache.cordova.CordovaInterface, org.apache.cordova.CordovaWebView, org.apache.cordova.CordovaPreferences)' on a null object reference
+        at android.app.ActivityThread.performLaunchActivity(ActivityThread.java:3270)
+        at android.app.ActivityThread.handleLaunchActivity(ActivityThread.java:3409)
+        at android.app.servertransaction.LaunchActivityItem.execute(LaunchActivityItem.java:83)
+        at android.app.servertransaction.TransactionExecutor.executeCallbacks(TransactionExecutor.java:135)
+        at android.app.servertransaction.TransactionExecutor.execute(TransactionExecutor.java:95)
+        at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2016)
+        at android.os.Handler.dispatchMessage(Handler.java:107)
+        at android.os.Looper.loop(Looper.java:214)
+        at android.app.ActivityThread.main(ActivityThread.java:7356)
+        at java.lang.reflect.Method.invoke(Native Method)
+        at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:492)
+        at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:930)
+     Caused by: java.lang.NullPointerException: Attempt to invoke virtual method 'void org.apache.cordova.CordovaPlugin.privateInitialize(java.lang.String, org.apache.cordova.CordovaInterface, org.apache.cordova.CordovaWebView, org.apache.cordova.CordovaPreferences)' on a null object reference
+        at org.apache.cordova.PluginManager.getPlugin(PluginManager.java:171)
+        at org.apache.cordova.PluginManager.startupPlugins(PluginManager.java:97)
+        at org.apache.cordova.PluginManager.init(PluginManager.java:86)
+        at org.apache.cordova.CordovaWebViewImpl.init(CordovaWebViewImpl.java:117)
+        at org.apache.cordova.CordovaActivity.init(CordovaActivity.java:149)
+        at org.apache.cordova.CordovaActivity.loadUrl(CordovaActivity.java:224)
+        at de.dustplanet.lottie.MainActivity.onCreate(MainActivity.java:39)
+        at android.app.Activity.performCreate(Activity.java:7802)
+        at android.app.Activity.performCreate(Activity.java:7791)
+        at android.app.Instrumentation.callActivityOnCreate(Instrumentation.java:1299)
+        at android.app.ActivityThread.performLaunchActivity(ActivityThread.java:3245)
+        at android.app.ActivityThread.handleLaunchActivity(ActivityThread.java:3409) 
+        at android.app.servertransaction.LaunchActivityItem.execute(LaunchActivityItem.java:83) 
+        at android.app.servertransaction.TransactionExecutor.executeCallbacks(TransactionExecutor.java:135) 
+        at android.app.servertransaction.TransactionExecutor.execute(TransactionExecutor.java:95) 
+        at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2016) 
+        at android.os.Handler.dispatchMessage(Handler.java:107) 
+        at android.os.Looper.loop(Looper.java:214) 
+        at android.app.ActivityThread.main(ActivityThread.java:7356) 
+        at java.lang.reflect.Method.invoke(Native Method) 
+        at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:492) 
+        at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:930) 
+```
+
+### Answer
+
+Use cordova-android >=9.0.0. Set `GradlePluginKotlinEnabled` to `true` in your config.xml
