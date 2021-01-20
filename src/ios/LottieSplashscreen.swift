@@ -6,10 +6,14 @@ import Lottie
     var visible = false
     var animationEnded = false
     var callbackId: String?
+    var enabled = false
 
     override func pluginInitialize() {
-        createObservers()
-        createView()
+        enabled = (commandDelegate?.settings["LottieEnabled".lowercased()] as? NSString ?? "false").boolValue
+        if enabled {
+            createObservers()
+            createView()
+        }
     }
 
     @objc(hide:)
@@ -20,11 +24,13 @@ import Lottie
 
     @objc(show:)
     func show(command: CDVInvokedUrlCommand) {
-        let location = command.arguments.count > 0 ? command.argument(at: 0) : nil
-        let remote = command.arguments.count > 1 ? command.argument(at: 1) : nil
-        let width = command.arguments.count > 2 ? command.argument(at: 2) : nil
-        let height = command.arguments.count > 3 ? command.argument(at: 3) : nil
-        createView(location: location as? String, remote: remote as? Bool, width: width as? Int, height: height as? Int, callbackId: command.callbackId)
+        if enabled {
+            let location = command.arguments.count > 0 ? command.argument(at: 0) : nil
+            let remote = command.arguments.count > 1 ? command.argument(at: 1) : nil
+            let width = command.arguments.count > 2 ? command.argument(at: 2) : nil
+            let height = command.arguments.count > 3 ? command.argument(at: 3) : nil
+            createView(location: location as? String, remote: remote as? Bool, width: width as? Int, height: height as? Int, callbackId: command.callbackId)
+        }
     }
 
     @objc(initialAnimationEnded:)

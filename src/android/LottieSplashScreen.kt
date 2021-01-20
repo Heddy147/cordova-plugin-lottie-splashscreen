@@ -27,14 +27,18 @@ class LottieSplashScreen : CordovaPlugin() {
     private lateinit var splashDialog: Dialog
     private lateinit var animationView: LottieAnimationView
     private var animationEnded = false
+    private var enabled = false
 
     override fun pluginInitialize() {
         super.initialize(cordova, webView)
-        try {
-            createView()
-        } catch (e: Exception) {
-            Log.e(LOG_TAG, e.message)
-            e.printStackTrace()
+        enabled = preferences.getBoolean("LottieEnabled", false)
+        if (enabled) {
+            try {
+                createView()
+            } catch (e: Exception) {
+                Log.e(LOG_TAG, e.message)
+                e.printStackTrace()
+            }
         }
     }
 
@@ -49,34 +53,36 @@ class LottieSplashScreen : CordovaPlugin() {
     }
 
     override fun execute(action: String, args: CordovaArgs, callbackContext: CallbackContext): Boolean {
-        when (action) {
-            "hide" ->
-                return try {
-                    destroyView(callbackContext)
-                    true
-                } catch (e: Exception) {
-                    callbackContext.error(e.message)
-                    false
+        if (enabled) {
+            when (action) {
+                "hide" ->
+                    return try {
+                        destroyView(callbackContext)
+                        true
+                    } catch (e: Exception) {
+                        callbackContext.error(e.message)
+                        false
+                    }
+                "show" ->
+                    return try {
+                        createView(
+                            if (args.isNull(0)) null else args.getString(0),
+                            if (args.isNull(1)) null else args.getBoolean(1),
+                            if (args.isNull(2)) null else args.getDouble(2),
+                            if (args.isNull(3)) null else args.getDouble(3),
+                            callbackContext
+                        )
+                        true
+                    } catch (e: Exception) {
+                        callbackContext.error(e.message)
+                        false
+                    }
+                "initialAnimationEnded" -> {
+                    callbackContext.success(animationEnded.toString())
+                    return true
                 }
-            "show" ->
-                return try {
-                    createView(
-                        if (args.isNull(0)) null else args.getString(0),
-                        if (args.isNull(1)) null else args.getBoolean(1),
-                        if (args.isNull(2)) null else args.getDouble(2),
-                        if (args.isNull(3)) null else args.getDouble(3),
-                        callbackContext
-                    )
-                    true
-                } catch (e: Exception) {
-                    callbackContext.error(e.message)
-                    false
-                }
-            "initialAnimationEnded" -> {
-                callbackContext.success(animationEnded.toString())
-                return true
+                else -> return false
             }
-            else -> return false
         }
     }
 
@@ -90,133 +96,135 @@ class LottieSplashScreen : CordovaPlugin() {
     }
 
     private fun createView(location: String? = null, remote: Boolean? = null, width: Double? = null, height: Double? = null, callbackContext: CallbackContext? = null) {
-        if (::splashDialog.isInitialized && splashDialog.isShowing) {
-            throw LottieSplashScreenAnimationAlreadyPlayingException("An animation is already playing, please first hide the current one")
-        }
-        cordova.activity.runOnUiThread {
-            if (cordova.activity.isFinishing.not()) {
-                val context = webView.context
+        if (enabled) {
+            if (::splashDialog.isInitialized && splashDialog.isShowing) {
+                throw LottieSplashScreenAnimationAlreadyPlayingException("An animation is already playing, please first hide the current one")
+            }
+            cordova.activity.runOnUiThread {
+                if (cordova.activity.isFinishing.not()) {
+                    val context = webView.context
 
-                animationView = LottieAnimationView(context)
-                linearLayout = LinearLayout(context)
-                val useHardwareAcceleration = remote
-                    ?: preferences.getBoolean("LottieEnableHardwareAcceleration", false)
-                if (useHardwareAcceleration) {
-                    animationView.setRenderMode(RenderMode.HARDWARE)
-                }
+                    animationView = LottieAnimationView(context)
+                    linearLayout = LinearLayout(context)
+                    val useHardwareAcceleration = remote
+                        ?: preferences.getBoolean("LottieEnableHardwareAcceleration", false)
+                    if (useHardwareAcceleration) {
+                        animationView.setRenderMode(RenderMode.HARDWARE)
+                    }
 
-                val remoteEnabled = remote ?: preferences.getBoolean("LottieRemoteEnabled", false)
-                val animationLocation = location
-                    ?: preferences.getString("LottieAnimationLocation", "")
-                if (animationLocation.isNullOrBlank()) {
-                    Log.e(LOG_TAG, "LottieAnimationLocation has to be configured!")
-                    this.destroyView()
-                    val invalidURLException = LottieSplashScreenInvalidURLException("The provided animation is invalid")
-                    if (callbackContext != null) {
-                        callbackContext.error(invalidURLException.message)
-                        return@runOnUiThread
-                    } else {
-                        throw invalidURLException
-                    }
-                }
-                val comp: LottieTask<LottieComposition>
-                val cacheDisabled = preferences.getBoolean("LottieCacheDisabled", false)
-                when {
-                    remoteEnabled -> {
-                        comp = LottieCompositionFactory.fromUrl(
-                            context, animationLocation,
-                            when {
-                                cacheDisabled -> null
-                                else -> "url_$animationLocation"
-                            }
-                        )
-                    }
-                    else -> {
-                        comp = LottieCompositionFactory.fromAsset(
-                            context, animationLocation,
-                            when {
-                                cacheDisabled -> null
-                                else -> "asset_$animationLocation"
-                            }
-                        )
-                        animationView.imageAssetsFolder = preferences.getString("LottieImagesLocation", animationLocation.substring(0, animationLocation.lastIndexOf('/')))
-                    }
-                }
-
-                comp.addListener { animationView.setComposition(it) }.addFailureListener {
-                    Log.e(LOG_TAG, "Animation not loadable!")
-                    Log.e(LOG_TAG, Log.getStackTraceString(it))
-                    this.destroyView()
-                    if (callbackContext != null) {
+                    val remoteEnabled = remote ?: preferences.getBoolean("LottieRemoteEnabled", false)
+                    val animationLocation = location
+                        ?: preferences.getString("LottieAnimationLocation", "")
+                    if (animationLocation.isNullOrBlank()) {
+                        Log.e(LOG_TAG, "LottieAnimationLocation has to be configured!")
+                        this.destroyView()
                         val invalidURLException = LottieSplashScreenInvalidURLException("The provided animation is invalid")
-                        callbackContext.error(invalidURLException.message)
-                    }
-                }
-
-                animationView.enableMergePathsForKitKatAndAbove(true)
-
-                if (preferences.getBoolean("LottieLoopAnimation", false)) {
-                    animationView.repeatCount = LottieDrawable.INFINITE
-                }
-
-                animationView.scaleType = ImageView.ScaleType.valueOf(preferences.getString("LottieScaleType", "FIT_CENTER").toUpperCase(Locale.ENGLISH))
-                val color = ColorHelper.parseColor(preferences.getString("LottieBackgroundColor", "#ffffff"))
-                animationView.setBackgroundColor(color)
-
-                val fullScreen = preferences.getBoolean("LottieFullScreen", false)
-                splashDialog = Dialog(
-                    context,
-                    when {
-                        fullScreen -> style.Theme_NoTitleBar_Fullscreen
-                        else -> style.Theme_Translucent_NoTitleBar
-                    }
-                )
-                splashDialog.window?.setBackgroundDrawable(ColorDrawable(color))
-                splashDialog.setContentView(linearLayout)
-                splashDialog.setCancelable(false)
-                linearLayout.addView(animationView)
-
-                calculateAnimationSize(width, height)
-                splashDialog.show()
-
-                animationView.addAnimatorListener(object : Animator.AnimatorListener {
-                    override fun onAnimationStart(animation: Animator) {
-                        webView.engine.evaluateJavascript("document.dispatchEvent(new Event('lottieAnimationStart'))") { }
-                    }
-
-                    override fun onAnimationEnd(animation: Animator) {
-                        webView.engine.evaluateJavascript("document.dispatchEvent(new Event('lottieAnimationEnd'))") { }
-                        val hideAfterAnimationDone = preferences.getBoolean("LottieHideAfterAnimationEnd", false)
-                        when {
-                            hideAfterAnimationDone -> dismissDialog()
+                        if (callbackContext != null) {
+                            callbackContext.error(invalidURLException.message)
+                            return@runOnUiThread
+                        } else {
+                            throw invalidURLException
                         }
-                        animationEnded = true
+                    }
+                    val comp: LottieTask<LottieComposition>
+                    val cacheDisabled = preferences.getBoolean("LottieCacheDisabled", false)
+                    when {
+                        remoteEnabled -> {
+                            comp = LottieCompositionFactory.fromUrl(
+                                context, animationLocation,
+                                when {
+                                    cacheDisabled -> null
+                                    else -> "url_$animationLocation"
+                                }
+                            )
+                        }
+                        else -> {
+                            comp = LottieCompositionFactory.fromAsset(
+                                context, animationLocation,
+                                when {
+                                    cacheDisabled -> null
+                                    else -> "asset_$animationLocation"
+                                }
+                            )
+                            animationView.imageAssetsFolder = preferences.getString("LottieImagesLocation", animationLocation.substring(0, animationLocation.lastIndexOf('/')))
+                        }
                     }
 
-                    override fun onAnimationCancel(animation: Animator) {
-                        webView.engine.evaluateJavascript("document.dispatchEvent(new Event('lottieAnimationCancel'))") { }
+                    comp.addListener { animationView.setComposition(it) }.addFailureListener {
+                        Log.e(LOG_TAG, "Animation not loadable!")
+                        Log.e(LOG_TAG, Log.getStackTraceString(it))
+                        this.destroyView()
+                        if (callbackContext != null) {
+                            val invalidURLException = LottieSplashScreenInvalidURLException("The provided animation is invalid")
+                            callbackContext.error(invalidURLException.message)
+                        }
                     }
 
-                    override fun onAnimationRepeat(animation: Animator) {
-                        webView.engine.evaluateJavascript("document.dispatchEvent(new Event('lottieAnimationRepeat'))") { }
+                    animationView.enableMergePathsForKitKatAndAbove(true)
+
+                    if (preferences.getBoolean("LottieLoopAnimation", false)) {
+                        animationView.repeatCount = LottieDrawable.INFINITE
                     }
-                })
 
-                animationView.setOnClickListener {
-                    val cancelOnTap = preferences.getBoolean("LottieCancelOnTap", false)
-                    if (cancelOnTap) {
-                        animationView.cancelAnimation()
-                        dismissDialog()
+                    animationView.scaleType = ImageView.ScaleType.valueOf(preferences.getString("LottieScaleType", "FIT_CENTER").toUpperCase(Locale.ENGLISH))
+                    val color = ColorHelper.parseColor(preferences.getString("LottieBackgroundColor", "#ffffff"))
+                    animationView.setBackgroundColor(color)
+
+                    val fullScreen = preferences.getBoolean("LottieFullScreen", false)
+                    splashDialog = Dialog(
+                        context,
+                        when {
+                            fullScreen -> style.Theme_NoTitleBar_Fullscreen
+                            else -> style.Theme_Translucent_NoTitleBar
+                        }
+                    )
+                    splashDialog.window?.setBackgroundDrawable(ColorDrawable(color))
+                    splashDialog.setContentView(linearLayout)
+                    splashDialog.setCancelable(false)
+                    linearLayout.addView(animationView)
+
+                    calculateAnimationSize(width, height)
+                    splashDialog.show()
+
+                    animationView.addAnimatorListener(object : Animator.AnimatorListener {
+                        override fun onAnimationStart(animation: Animator) {
+                            webView.engine.evaluateJavascript("document.dispatchEvent(new Event('lottieAnimationStart'))") { }
+                        }
+
+                        override fun onAnimationEnd(animation: Animator) {
+                            webView.engine.evaluateJavascript("document.dispatchEvent(new Event('lottieAnimationEnd'))") { }
+                            val hideAfterAnimationDone = preferences.getBoolean("LottieHideAfterAnimationEnd", false)
+                            when {
+                                hideAfterAnimationDone -> dismissDialog()
+                            }
+                            animationEnded = true
+                        }
+
+                        override fun onAnimationCancel(animation: Animator) {
+                            webView.engine.evaluateJavascript("document.dispatchEvent(new Event('lottieAnimationCancel'))") { }
+                        }
+
+                        override fun onAnimationRepeat(animation: Animator) {
+                            webView.engine.evaluateJavascript("document.dispatchEvent(new Event('lottieAnimationRepeat'))") { }
+                        }
+                    })
+
+                    animationView.setOnClickListener {
+                        val cancelOnTap = preferences.getBoolean("LottieCancelOnTap", false)
+                        if (cancelOnTap) {
+                            animationView.cancelAnimation()
+                            dismissDialog()
+                        }
                     }
-                }
 
-                animationView.playAnimation()
-                animationEnded = false
+                    animationView.playAnimation()
+                    animationEnded = false
 
-                val delay = preferences.getInteger("LottieHideTimeout", 0)
-                if (delay > 0) {
-                    val handler = Handler()
-                    handler.postDelayed({ dismissDialog() }, delay.toLong())
+                    val delay = preferences.getInteger("LottieHideTimeout", 0)
+                    if (delay > 0) {
+                        val handler = Handler()
+                        handler.postDelayed({ dismissDialog() }, delay.toLong())
+                    }
                 }
             }
         }
