@@ -84,6 +84,7 @@ class LottieSplashScreen : CordovaPlugin() {
                 else -> return false
             }
         }
+        return false;
     }
 
     private fun destroyView(callbackContext: CallbackContext? = null) {
