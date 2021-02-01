@@ -168,7 +168,7 @@ class LottieSplashScreen : CordovaPlugin() {
                     }
 
                     animationView.scaleType = ImageView.ScaleType.valueOf(preferences.getString("LottieScaleType", "FIT_CENTER").toUpperCase(Locale.ENGLISH))
-                    val color = ColorHelper.parseColor(preferences.getString("LottieBackgroundColor", "#ffffff"))
+                    val color = ColorHelper.parseColor(preferences.getInteger("LottieBackgroundColor", Color.WHITE))
                     animationView.setBackgroundColor(color)
 
                     val fullScreen = preferences.getBoolean("LottieFullScreen", false)
