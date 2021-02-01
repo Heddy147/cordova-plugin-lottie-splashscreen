@@ -3,6 +3,7 @@ package de.dustplanet.cordova.lottie
 import android.R.style
 import android.animation.Animator
 import android.app.Dialog
+import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Handler
@@ -11,16 +12,11 @@ import android.view.animation.AlphaAnimation
 import android.view.animation.Animation
 import android.widget.ImageView
 import android.widget.LinearLayout
-import com.airbnb.lottie.LottieAnimationView
-import com.airbnb.lottie.LottieComposition
-import com.airbnb.lottie.LottieCompositionFactory
-import com.airbnb.lottie.LottieDrawable
-import com.airbnb.lottie.LottieTask
-import com.airbnb.lottie.RenderMode
+import com.airbnb.lottie.*
 import org.apache.cordova.CallbackContext
 import org.apache.cordova.CordovaArgs
 import org.apache.cordova.CordovaPlugin
-import java.util.Locale
+import java.util.*
 
 
 class LottieSplashScreen : CordovaPlugin() {
@@ -29,6 +25,11 @@ class LottieSplashScreen : CordovaPlugin() {
     private lateinit var animationView: LottieAnimationView
     private var animationEnded = false
     private var enabled = false
+
+    /**
+     * Remember last device orientation to detect orientation changes.
+     */
+    private var orientation = 0
 
     override fun pluginInitialize() {
         super.initialize(cordova, webView)
@@ -53,6 +54,14 @@ class LottieSplashScreen : CordovaPlugin() {
         return null
     }
 
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        if (newConfig.orientation !== orientation) {
+            orientation = newConfig.orientation
+
+            calculateAnimationSize()
+        }
+    }
+
     override fun execute(action: String, args: CordovaArgs, callbackContext: CallbackContext): Boolean {
         if (enabled) {
             when (action) {
@@ -67,11 +76,11 @@ class LottieSplashScreen : CordovaPlugin() {
                 "show" ->
                     return try {
                         createView(
-                            if (args.isNull(0)) null else args.getString(0),
-                            if (args.isNull(1)) null else args.getBoolean(1),
-                            if (args.isNull(2)) null else args.getDouble(2),
-                            if (args.isNull(3)) null else args.getDouble(3),
-                            callbackContext
+                                if (args.isNull(0)) null else args.getString(0),
+                                if (args.isNull(1)) null else args.getBoolean(1),
+                                if (args.isNull(2)) null else args.getDouble(2),
+                                if (args.isNull(3)) null else args.getDouble(3),
+                                callbackContext
                         )
                         true
                     } catch (e: Exception) {
@@ -109,14 +118,14 @@ class LottieSplashScreen : CordovaPlugin() {
                     animationView = LottieAnimationView(context)
                     linearLayout = LinearLayout(context)
                     val useHardwareAcceleration = remote
-                        ?: preferences.getBoolean("LottieEnableHardwareAcceleration", false)
+                            ?: preferences.getBoolean("LottieEnableHardwareAcceleration", false)
                     if (useHardwareAcceleration) {
                         animationView.setRenderMode(RenderMode.HARDWARE)
                     }
 
                     val remoteEnabled = remote ?: preferences.getBoolean("LottieRemoteEnabled", false)
                     val animationLocation = location
-                        ?: preferences.getString("LottieAnimationLocation", "")
+                            ?: preferences.getString("LottieAnimationLocation", "")
                     if (animationLocation.isNullOrBlank()) {
                         Log.e(LOG_TAG, "LottieAnimationLocation has to be configured!")
                         this.destroyView()
@@ -133,20 +142,20 @@ class LottieSplashScreen : CordovaPlugin() {
                     when {
                         remoteEnabled -> {
                             comp = LottieCompositionFactory.fromUrl(
-                                context, animationLocation,
-                                when {
-                                    cacheDisabled -> null
-                                    else -> "url_$animationLocation"
-                                }
+                                    context, animationLocation,
+                                    when {
+                                        cacheDisabled -> null
+                                        else -> "url_$animationLocation"
+                                    }
                             )
                         }
                         else -> {
                             comp = LottieCompositionFactory.fromAsset(
-                                context, animationLocation,
-                                when {
-                                    cacheDisabled -> null
-                                    else -> "asset_$animationLocation"
-                                }
+                                    context, animationLocation,
+                                    when {
+                                        cacheDisabled -> null
+                                        else -> "asset_$animationLocation"
+                                    }
                             )
                             animationView.imageAssetsFolder = preferences.getString("LottieImagesLocation", animationLocation.substring(0, animationLocation.lastIndexOf('/')))
                         }
@@ -174,11 +183,11 @@ class LottieSplashScreen : CordovaPlugin() {
 
                     val fullScreen = preferences.getBoolean("LottieFullScreen", false)
                     splashDialog = Dialog(
-                        context,
-                        when {
-                            fullScreen -> style.Theme_NoTitleBar_Fullscreen
-                            else -> style.Theme_Translucent_NoTitleBar
-                        }
+                            context,
+                            when {
+                                fullScreen -> style.Theme_NoTitleBar_Fullscreen
+                                else -> style.Theme_Translucent_NoTitleBar
+                            }
                     )
                     splashDialog.window?.setBackgroundDrawable(ColorDrawable(color))
                     splashDialog.setContentView(linearLayout)
@@ -240,36 +249,44 @@ class LottieSplashScreen : CordovaPlugin() {
                 val metrics = webView.context.resources.displayMetrics
 
                 val animationHeight = (
-                    metrics.heightPixels * (
-                        width
-                            ?: preferences.getDouble("LottieHeight", 0.2)
-                        )
-                    ).toInt()
+                        metrics.heightPixels * (
+                                width
+                                        ?: preferences.getDouble("LottieHeight", 0.2)
+                                )
+                        ).toInt()
                 val animationWidth = (
-                    metrics.widthPixels * (
-                        height
-                            ?: preferences.getDouble("LottieWidth", 0.2)
-                        )
-                    ).toInt()
+                        metrics.widthPixels * (
+                                height
+                                        ?: preferences.getDouble("LottieWidth", 0.2)
+                                )
+                        ).toInt()
 
+                val additionWidth = (metrics.widthPixels * 0.1).toInt()
+                val additionHeight = (metrics.heightPixels * 0.1).toInt()
                 splashDialog.window?.setLayout(animationWidth, animationHeight)
-                splashDialog.window?.setLayout(metrics.widthPixels, metrics.heightPixels)
-                animationView.layoutParams.width = animationWidth;
-                animationView.layoutParams.height = animationHeight;
+                splashDialog.window?.setLayout(
+                        metrics.widthPixels + additionWidth,
+                        metrics.heightPixels + additionHeight
+                )
+                animationView.layoutParams.width = animationWidth
+                animationView.layoutParams.height = animationHeight
                 animationView.scaleType = ImageView.ScaleType.FIT_CENTER;
-                linearLayout.setPadding(((metrics.widthPixels - animationWidth) / 2).toInt(), ((metrics.heightPixels - animationHeight) / 2).toInt(), ((metrics.widthPixels - animationWidth) / 2).toInt(), ((metrics.heightPixels - animationHeight) / 2).toInt())
-                Log.i("MyActivity", "Höhe " + metrics.heightPixels + " - " + animationHeight + " - " + ((metrics.heightPixels - animationHeight) / 2).toInt())
-                Log.i("MyActivity", "Breite " + metrics.widthPixels + " " + animationWidth + " - " + ((metrics.widthPixels - animationWidth) / 2).toInt())
+                linearLayout.setPadding(
+                        ((metrics.widthPixels - animationWidth) / 2).toInt(),
+                        ((metrics.heightPixels - animationHeight) / 2).toInt(),
+                        ((metrics.widthPixels - animationWidth) / 2).toInt() + additionWidth,
+                        ((metrics.heightPixels - animationHeight) / 2).toInt() + additionHeight
+                )
             } else {
                 splashDialog.window?.setLayout(
-                    convertPixelsToDp(
-                        width
-                            ?: preferences.getDouble("LottieWidth", 200.0)
-                    ),
-                    convertPixelsToDp(
-                        height
-                            ?: preferences.getDouble("LottieHeight", 200.0)
-                    )
+                        convertPixelsToDp(
+                                width
+                                        ?: preferences.getDouble("LottieWidth", 200.0)
+                        ),
+                        convertPixelsToDp(
+                                height
+                                        ?: preferences.getDouble("LottieHeight", 200.0)
+                        )
                 )
             }
         }

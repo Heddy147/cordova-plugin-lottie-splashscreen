@@ -9,6 +9,16 @@ extension UIColor {
         let hexString = hex ?? "FFFFFFFF"
         var colorString: String = hexString.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
 
+        if(colorString.hasPrefix("0X")) {
+            colorString.remove(at: colorString.startIndex)
+            colorString.remove(at: colorString.startIndex)
+            if(colorString.count == 8) {
+                let alpha = String(colorString.prefix(2))
+                let color = String(colorString.suffix(6))
+                colorString = color + alpha
+            }
+        }
+
         if colorString.hasPrefix("#") {
             colorString.remove(at: colorString.startIndex)
         }
