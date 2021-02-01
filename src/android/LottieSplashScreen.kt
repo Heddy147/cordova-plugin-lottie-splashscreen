@@ -3,6 +3,7 @@ package de.dustplanet.cordova.lottie
 import android.R.style
 import android.animation.Animator
 import android.app.Dialog
+import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Handler
 import android.util.Log
