@@ -55,7 +55,7 @@ class LottieSplashScreen : CordovaPlugin() {
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
-        if (newConfig.orientation !== orientation) {
+        if (enabled && newConfig.orientation !== orientation && ::splashDialog.isInitialized) {
             orientation = newConfig.orientation
 
             calculateAnimationSize()
