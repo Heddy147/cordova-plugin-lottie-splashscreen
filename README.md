@@ -1,6 +1,10 @@
 # cordova-plugin-lottie-splashscreen
 
-[![Build Status](https://travis-ci.org/timbru31/cordova-plugin-lottie-splashscreen.svg?branch=master)](https://travis-ci.org/timbru31/cordova-plugin-lottie-splashscreen)
+[![Run a security audit](https://github.com/timbru31/cordova-plugin-lottie-splashscreen/workflows/Run%20a%20security%20audit/badge.svg)](https://github.com/timbru31/cordova-plugin-lottie-splashscreen/actions?query=workflow%3A%22Run+a+security+audit%22)
+[![Linting](https://github.com/timbru31/cordova-plugin-lottie-splashscreen/workflows/Linting/badge.svg)](https://github.com/timbru31/cordova-plugin-lottie-splashscreen/actions?query=workflow%3ALinting)
+[![Smoke test on Ubuntu](https://github.com/timbru31/cordova-plugin-lottie-splashscreen/workflows/Smoke%20test%20on%20Ubuntu/badge.svg)](https://github.com/timbru31/cordova-plugin-lottie-splashscreen/actions?query=workflow%3A%22Smoke+test+on+Ubuntu%22)
+[![Smoke test on macOS](https://github.com/timbru31/cordova-plugin-lottie-splashscreen/workflows/Smoke%20test%20on%20macOS/badge.svg)](https://github.com/timbru31/cordova-plugin-lottie-splashscreen/actions?query=workflow%3A%22Smoke+test+on+macOS%22)
+[![Smoke test on Windows](https://github.com/timbru31/cordova-plugin-lottie-splashscreen/workflows/Smoke%20test%20on%20Windows/badge.svg)](https://github.com/timbru31/cordova-plugin-lottie-splashscreen/actions?query=workflow%3A%22Smoke+test+on+Windows%22)
 
 [![Dependency Status](https://david-dm.org/timbru31/cordova-plugin-lottie-splashscreen.svg)](https://david-dm.org/timbru31/cordova-plugin-lottie-splashscreen)
 [![devDependency Status](https://david-dm.org/timbru31/cordova-plugin-lottie-splashscreen/dev-status.svg)](https://david-dm.org/timbru31/cordova-plugin-lottie-splashscreen#info=devDependencies)
@@ -11,7 +15,7 @@
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![npm](https://img.shields.io/npm/v/cordova-plugin-lottie-splashscreen.svg)](https://www.npmjs.com/package/cordova-plugin-lottie-splashscreen)
 
-#### Cordova plugin to show bodymovin/Lottie animations as the splash screen with [Airbnb's Lottie](https://airbnb.io/lottie/) wrapper
+#### Apache Cordova plugin to show bodymovin/Lottie animations as the splash screen with [Airbnb's Lottie](https://airbnb.io/lottie/) wrapper
 
 ### Supported platforms
 
@@ -52,11 +56,11 @@ In the [FAQ](FAQ.md) are some examples with common error messages and how to fix
 
 #### from git (unstable)
 
-`$ cordova plugin add https://github.com/timbru31/cordova-plugin-cordova-plugin-lottie-splashscreen.git`
+`$ cordova plugin add https://github.com/timbru31/cordova-plugin-lottie-splashscreen.git`
 
 ### Usage
 
-This Cordova plugin is meant as a replacement for the stock [cordova-plugin-splashscreen](https://github.com/apache/cordova-plugin-splashscreen).  
+This Apache Cordova plugin is meant as a replacement for the stock [cordova-plugin-splashscreen](https://github.com/apache/cordova-plugin-splashscreen).  
 An example project can be found in the `example` folder.
 
 #### Methods
@@ -110,7 +114,19 @@ await lottie.splashscreen.once(event: LottieEvent).then(event => console.log(eve
     <preference name="LottieRemoteEnabled" value="true" />
 ```
 
--   `LottieAnimationLocation` (String, default `""`). Location of the Lottie JSON file that should be loaded. Can either be a URL (if `LottieRemoteEnabled` is `true`) or a local JSON or ZIP file (e.g. `www/lottie/error.json`).
+-   `LottieAnimationLocationLight` (String, default `""`). Location of the Lottie JSON file that should be loaded in light mode. Can either be a URL (if `LottieRemoteEnabled` is `true`) or a local JSON or ZIP file (e.g. `www/lottie/error.json`).
+
+```xml
+    <preference name="LottieAnimationLocationLight" value="https://assets.lottiefiles.com/datafiles/99nA1a7mkSF3Oz8/data.json" />
+```
+
+-   `LottieAnimationLocationDark` (String, default `""`). Location of the Lottie JSON file that should be loaded in dark mode. Can either be a URL (if `LottieRemoteEnabled` is `true`) or a local JSON or ZIP file (e.g. `www/lottie/error.json`).
+
+```xml
+    <preference name="LottieAnimationLocationDark" value="https://assets.lottiefiles.com/datafiles/99nA1a7mkSF3Oz8/data.json" />
+```
+
+-   `LottieAnimationLocation` (String, default `""`). Location of the Lottie JSON file that should be loaded as a fallback if there are no dark or light mode animations defined or if one of them is an invalid location. Can either be a URL (if `LottieRemoteEnabled` is `true`) or a local JSON or ZIP file (e.g. `www/lottie/error.json`).
 
 ```xml
     <preference name="LottieAnimationLocation" value="https://assets.lottiefiles.com/datafiles/99nA1a7mkSF3Oz8/data.json" />
