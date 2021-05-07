@@ -260,17 +260,17 @@ class LottieSplashScreen : CordovaPlugin() {
             }
         )
         splashDialog.window?.setBackgroundDrawable(ColorDrawable(color))
-        splashDialog.setContentView(animationView)
+        splashDialog.setContentView(linearLayout)
         splashDialog.setCancelable(false)
         linearLayout.addView(animationView)
     }
 
     private fun calculateAnimationSize(width: Double? = null, height: Double? = null) {
         val fullScreen = preferences.getBoolean("LottieFullScreen", false)
+        val metrics = webView.context.resources.displayMetrics
         if (!fullScreen) {
             val relativeSize = preferences.getBoolean("LottieRelativeSize", false)
             if (relativeSize) {
-                val metrics = webView.context.resources.displayMetrics
                 val animationHeight = (
                     metrics.heightPixels * (
                         height
@@ -310,6 +310,10 @@ class LottieSplashScreen : CordovaPlugin() {
                     )
                 )
             }
+        } else {
+            linearLayout.setPadding(0, 0, 0, 0)
+            animationView.layoutParams.width = metrics.widthPixels
+            animationView.layoutParams.height = metrics.heightPixels
         }
     }
 
