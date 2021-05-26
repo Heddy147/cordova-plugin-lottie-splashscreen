@@ -10,9 +10,9 @@ jobs:
         xcode: [11, 12]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2.3.4
 
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v2.1.5
         with:
           node-version: '12.x'
 
@@ -21,7 +21,7 @@ jobs:
           node --version
           npm --version
 
-      - uses: maxim-lobanov/setup-xcode@v1.1
+      - uses: maxim-lobanov/setup-xcode@v1.2.3
         with:
           xcode-version: ${{ matrix.xcode }}
 
